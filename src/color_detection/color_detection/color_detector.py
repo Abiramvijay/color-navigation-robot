@@ -62,23 +62,31 @@ class ColorDetector(Node):
                 green_upper
             )
 
-            # Ignore tiny noise regions.
+            other_mask = cv2.inRange(
+                hsv,
+                np.array([0, 100, 60]),
+                np.array([180, 255, 255])
+            )
+            excluded_mask = cv2.bitwise_or(red_mask, green_mask)
+            other_mask = cv2.bitwise_and(
+                other_mask, cv2.bitwise_not(excluded_mask)
+            )
+
+            # Ignore tiny noise regions and unsaturated white/gray pixels.
             red_area = cv2.countNonZero(red_mask)
             green_area = cv2.countNonZero(green_mask)
+            other_area = cv2.countNonZero(other_mask)
 
             minimum_area = 500
 
-            if red_area >= minimum_area and red_area > green_area:
-                detected = 'RED'
-
-            elif green_area >= minimum_area and green_area > red_area:
-                detected = 'GREEN'
-
-            elif red_area >= minimum_area and green_area >= minimum_area:
-                detected = 'RED' if red_area > green_area else 'GREEN'
-
-            else:
-                detected = 'WHITE'
+            areas = {
+                'RED': red_area,
+                'GREEN': green_area,
+                'OTHER': other_area
+            }
+            detected, area = max(areas.items(), key=lambda item: item[1])
+            if area < minimum_area:
+                detected = 'NO_OBJECT'
 
             output = String()
             output.data = detected

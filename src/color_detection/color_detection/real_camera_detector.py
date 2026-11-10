@@ -36,7 +36,10 @@ class RealCameraDetector(Node):
 
         self.timer = self.create_timer(0.05, self.process_frame)
 
-        self.get_logger().info('RED/GREEN/WHITE detector started.')
+        self.get_logger().info(
+            'RED/GREEN/OTHER color detector started; '
+            'white background is ignored.'
+        )
 
     def largest_area(self, mask, minimum_area=1500):
         contours, _ = cv2.findContours(
@@ -103,11 +106,15 @@ class RealCameraDetector(Node):
             np.array([85, 255, 255])
         )
 
-        # WHITE: bright pixels with low saturation.
-        white_mask = cv2.inRange(
+        # Other saturated hues are treated as the white-pillar target.
+        other_mask = cv2.inRange(
             hsv,
-            np.array([0, 0, 140]),
-            np.array([180, 90, 255])
+            np.array([0, 100, 60]),
+            np.array([180, 255, 255])
+        )
+        excluded_mask = cv2.bitwise_or(red_mask, green_mask)
+        other_mask = cv2.bitwise_and(
+            other_mask, cv2.bitwise_not(excluded_mask)
         )
 
         kernel = np.ones((5, 5), np.uint8)
@@ -118,15 +125,13 @@ class RealCameraDetector(Node):
         green_mask = cv2.morphologyEx(
             green_mask, cv2.MORPH_OPEN, kernel
         )
-        white_mask = cv2.morphologyEx(
-            white_mask, cv2.MORPH_OPEN, kernel
+        other_mask = cv2.morphologyEx(
+            other_mask, cv2.MORPH_OPEN, kernel
         )
 
         red_area, red_box = self.largest_area(red_mask)
         green_area, green_box = self.largest_area(green_mask)
-        white_area, white_box = self.largest_area(
-            white_mask, minimum_area=700
-        )
+        other_area, other_box = self.largest_area(other_mask)
 
         detected = 'NO_OBJECT'
         box = None
@@ -134,7 +139,7 @@ class RealCameraDetector(Node):
         areas = {
             'RED': (red_area, red_box),
             'GREEN': (green_area, green_box),
-            'WHITE': (white_area, white_box)
+            'OTHER': (other_area, other_box)
         }
 
         colour, (area, candidate_box) = max(

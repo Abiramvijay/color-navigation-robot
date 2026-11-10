@@ -59,6 +59,8 @@ class ColorNavigationController(Node):
 
     def color_callback(self, msg):
         color = msg.data.strip().upper()
+        if color == 'OTHER':
+            color = 'WHITE'
 
         if color not in self.pillar_goals:
             return
