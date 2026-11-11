@@ -25,14 +25,21 @@ def generate_launch_description():
         executable='parameter_bridge',
         arguments=[
             '/cmd_vel@geometry_msgs/msg/Twist]ignition.msgs.Twist',
-            '/odom@nav_msgs/msg/Odometry[ignition.msgs.Odometry'
+            '/odom@nav_msgs/msg/Odometry[ignition.msgs.Odometry',
+            '/camera/image@sensor_msgs/msg/Image[ignition.msgs.Image'
         ],
         output='screen'
     )
 
     camera_detector = Node(
         package='color_detection',
-        executable='real_camera_detector',
+        executable='color_detector',
+        output='screen'
+    )
+
+    camera_viewer = Node(
+        package='rqt_image_view',
+        executable='rqt_image_view',
         output='screen'
     )
 
@@ -50,6 +57,7 @@ def generate_launch_description():
             actions=[
                 bridge,
                 camera_detector,
+                camera_viewer,
                 navigation_controller
             ]
         )
