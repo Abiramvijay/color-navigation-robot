@@ -31,15 +31,24 @@ def generate_launch_description():
         output='screen'
     )
 
-    camera_detector = Node(
+    laptop_camera_detector = Node(
         package='color_detection',
-        executable='color_detector',
+        executable='real_camera_detector',
         output='screen'
     )
 
-    camera_viewer = Node(
+    robot_camera_viewer = Node(
         package='rqt_image_view',
         executable='rqt_image_view',
+        name='robot_camera_view',
+        arguments=['/camera/image'],
+        additional_env={
+            'GTK_EXE_PREFIX': '',
+            'GTK_PATH': '',
+            'GTK_IM_MODULE_FILE': '',
+            'GTK_IM_MODULE': '',
+            'GTK_MODULES': ''
+        },
         output='screen'
     )
 
@@ -56,8 +65,8 @@ def generate_launch_description():
             period=8.0,
             actions=[
                 bridge,
-                camera_detector,
-                camera_viewer,
+                laptop_camera_detector,
+                robot_camera_viewer,
                 navigation_controller
             ]
         )

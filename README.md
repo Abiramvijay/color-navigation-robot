@@ -1,8 +1,8 @@
 # Color Navigation Robot
 
-A ROS 2 differential-drive robot simulated with Gazebo Fortress. The robot uses
-an onboard forward-facing camera to detect colored targets and navigate toward
-them.
+A ROS 2 differential-drive robot simulated with Gazebo Fortress. Show a colored
+target to the laptop webcam to control navigation. A separate camera mounted on
+the robot streams its point of view so you can monitor the simulation.
 
 ## Requirements
 
@@ -29,21 +29,25 @@ ros2 launch color_detection autonomous_robot.launch.py
 ```
 
 The launch starts Gazebo, the differential-drive robot, the camera-to-ROS image
-bridge, color detection, and the navigation controller. The `rqt_image_view`
-window opens alongside Gazebo; select `/camera/image` in its topic selector to
-see the live view from the robot-mounted camera.
+bridge, laptop-webcam color detection, and the navigation controller. It opens
+two camera windows:
 
-The camera image is published as `sensor_msgs/msg/Image` on `/camera/image`.
-The detector publishes color results on `/detected_color`.
+- **Stable Colour Detection** shows the laptop webcam with the detected color
+  and a `HOME` button. Hold a red, green, or other saturated-color target in
+  front of this camera to send the robot to the corresponding pillar.
+- **Robot camera view** (`rqt_image_view`) shows the robot-mounted camera. If
+  needed, select `/camera/image` in the topic selector. Maximize the window for
+  a larger live POV.
 
-## Robot camera
+The robot camera publishes `sensor_msgs/msg/Image` on `/camera/image`. It is a
+separate monitoring view; the laptop webcam is the input that selects the
+navigation target. Color results are published on `/detected_color`.
 
-The camera is fixed at the front of the chassis. Its body, lens, and mounting
-bracket are visible in the robot model. The Gazebo camera sensor publishes a
-640x480 RGB image at 30 Hz.
+The robot camera is fixed at the front of the chassis. Its body, lens, and
+mounting bracket are visible in the robot model. Gazebo publishes a 640x480 RGB
+image at 30 Hz.
 
-## Real camera option
-
-`real_camera_detector` is a separate node for a host webcam at `/dev/video0`.
-It is not started by the simulation launch; use it separately when working with
-a physical camera.
+The laptop webcam is opened from `/dev/video0`. Connect/enable the webcam and
+allow desktop camera access before launching. The standalone
+`color_detector` node is for detecting from the simulated camera instead; it is
+not launched alongside the laptop detector, avoiding competing color commands.
